@@ -34,6 +34,7 @@ class JekyllThumbnail < Liquid::Tag
       dimensions = @dimensions
 
       source_path = "#{source}"
+
       raise "#{source_path} is not readable" unless File.readable?(source_path)
       ext = File.extname(source)
       desc = dimensions.gsub(/[^\da-z]+/i, '')
@@ -54,14 +55,18 @@ class JekyllThumbnail < Liquid::Tag
         image.resize dimensions
         image.quality 60
 
-        second_image = MiniMagick::Image.new("img/watermark-#{dimensions}.png")
+        watermark = "img/watermark-#{dimensions}.png"
 
-        result = image.composite(second_image) do |c|
-          c.compose "Over"    # OverCompositeOp
-          c.geometry "+20+20" # copy second_image onto first_image from (20, 20)
+        if File.readable?(watermark)
+          second_image = MiniMagick::Image.new(watermark)
+          result = image.composite(second_image) do |c|
+            c.compose "Over"    # OverCompositeOp
+            c.geometry "+20+20" # copy second_image onto first_image from (20, 20)
+          end
+          result.write dest_path
+        else
+          image.write dest_path
         end
-
-        result.write dest_path
       end
 
       """<img src='#{dest}' />"""
