@@ -33,12 +33,13 @@ class JekyllThumbnail < Liquid::Tag
       source = look_up context, source unless File.readable?(source)
       dimensions = @dimensions
 
-      source_path = "#{source}"
+      source_path = "#{source}".strip
+      source_path = "assets/images/" + "#{source}".strip unless File.readable?(source_path)
 
       raise "#{source_path} is not readable" unless File.readable?(source_path)
       ext = File.extname(source)
       desc = dimensions.gsub(/[^\da-z]+/i, '')
-      dest_dir = "#{File.dirname(source)}/thumbs"
+      dest_dir = "#{File.dirname(source_path)}/thumbs"
       Dir.mkdir dest_dir unless Dir.exists? dest_dir
       dest = "#{dest_dir}/#{File.basename(source, ext)}_#{desc}#{ext}"
       dest_path = "#{dest}"
@@ -69,7 +70,7 @@ class JekyllThumbnail < Liquid::Tag
         end
       end
 
-      """<img src='#{dest}' />"""
+      """<img src='#{look_up context, 'site.url'}/#{dest}' />"""
 
       # TODO support relative paths
     else
