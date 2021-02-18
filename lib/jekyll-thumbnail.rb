@@ -2,6 +2,7 @@
 
 require "jekyll"
 require "mini_magick"
+require "image_processing/mini_magick"
 
 class JekyllThumbnail < Liquid::Tag
   # look up liquid variables
@@ -38,13 +39,14 @@ class JekyllThumbnail < Liquid::Tag
 
       raise "#{source_path} is not readable" unless File.readable?(source_path)
       ext = File.extname(source)
+      ext = '.jpg'
       desc = dimensions.gsub(/[^\da-z]+/i, '')
       dest_dir = "#{File.dirname(source_path)}/thumbs"
       Dir.mkdir dest_dir unless Dir.exists? dest_dir
       dest = "#{dest_dir}/#{File.basename(source, ext)}_#{desc}#{ext}"
       dest_path = "#{dest}"
 
-      # only thumbnail the image if it doesn't exist tor is less recent than the source file
+      # only thumbnail the image if it doesn't exist or is less recent than the source file
       # will prevent re-processing thumbnails for a ton of images...
       if !File.exists?(dest_path) || File.mtime(dest_path) <= File.mtime(source_path)
         # puts ENV.inspect
@@ -52,22 +54,27 @@ class JekyllThumbnail < Liquid::Tag
         puts "Thumbnailing #{source} to #{dest} (#{dimensions})"
 
         image = MiniMagick::Image.open(source_path)
-        image.strip
-        image.resize dimensions
-        image.quality 60
+        pipeline = ImageProcessing::MiniMagick.source(image)
+        processed = pipeline
+          .strip
+          .resize_to_fill(*(dimensions.split('x')), gravity: "north-west")
+          .convert('jpg')
+          .call
 
         watermark = "img/watermark-#{dimensions}.png"
 
         if File.readable?(watermark)
           second_image = MiniMagick::Image.new(watermark)
-          result = image.composite(second_image) do |c|
+          composed = processed.composite(second_image) do |c|
             c.compose "Over"    # OverCompositeOp
             c.geometry "+20+20" # copy second_image onto first_image from (20, 20)
           end
-          result.write dest_path
+          composed.write dest_path
         else
-          image.write dest_path
+          MiniMagick::Image.new(processed.path).write dest_path
         end
+
+
       end
 
       """<img src='#{look_up context, 'site.url'}/#{dest}' />"""
