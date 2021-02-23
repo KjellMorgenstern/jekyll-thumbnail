@@ -71,6 +71,7 @@ class JekyllThumbnail < Liquid::Tag
           end
           composed.write dest_path
         else
+          puts "Write to #{dest_path}"
           MiniMagick::Image.new(processed.path).write dest_path
         end
 
