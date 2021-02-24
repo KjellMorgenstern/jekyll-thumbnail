@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
     spec.name          = "jekyll-thumbnail"
-    spec.version       = "0.3.d"
+    spec.version       = "0.3.e"
     spec.authors       = ["Doug Hatcher", "Kjell Morgenstern"]
     spec.email         = ["superterran@gmail.com"]
   
