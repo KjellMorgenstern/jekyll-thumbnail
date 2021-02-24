@@ -41,7 +41,7 @@ class JekyllThumbnail < Liquid::Tag
       ext = File.extname(source)
       ext = '.jpg'
       desc = dimensions.gsub(/[^\da-z]+/i, '')
-      dest_dir = "#{File.dirname(source_path)}/thumbs"
+      dest_dir = "#{File.dirname(source_path)}"
       Dir.mkdir dest_dir unless Dir.exists? dest_dir
       dest = "#{dest_dir}/#{File.basename(source, ext)}_#{desc}#{ext}"
       dest_path = "#{dest}"
